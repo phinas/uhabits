@@ -20,23 +20,23 @@
 import UIKit
 
 class DetailScreenController : UITableViewController {
-    
+
     let theme: Theme
     let habit: Habit
     let color: Color
     var cells = [UITableViewCell]()
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
-    
+
     init(habit: Habit, backend: Backend) {
         self.theme = backend.theme
         self.habit = habit
         self.color = theme.color(paletteIndex: self.habit.color.index)
         super.init(style: .grouped)
     }
-    
+
     override func viewDidLoad() {
         self.title = habit.name
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit,
@@ -45,7 +45,7 @@ class DetailScreenController : UITableViewController {
         cells.append(buildBarChartCell())
         cells.append(buildHistoryChartCell())
     }
-    
+
     func buildBarChartCell() -> UITableViewCell {
         let today = LocalDate(year: 2019, month: 3, day: 15)
         let axis = (0...365).map { today.minus(days: $0) }
@@ -67,7 +67,7 @@ class DetailScreenController : UITableViewController {
         cell.contentView.addSubview(view)
         return cell
     }
-    
+
     func buildHistoryChartCell() -> UITableViewCell {
         let component = CalendarChart(today: LocalDate(year: 2019, month: 3, day: 15),
                                       color: color,
@@ -84,7 +84,7 @@ class DetailScreenController : UITableViewController {
         cell.contentView.addSubview(view)
         return cell
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.navigationBar.barStyle = .blackOpaque
@@ -92,23 +92,23 @@ class DetailScreenController : UITableViewController {
         self.navigationController?.navigationBar.tintColor = .white
         self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
     }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 1
     }
-    
+
     override func numberOfSections(in tableView: UITableView) -> Int {
         return cells.count
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         return cells[indexPath.section]
     }
-    
+
     @objc func onEditHabitClicked() {
         self.navigationController?.pushViewController(EditHabitController(), animated: true)
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 200
     }

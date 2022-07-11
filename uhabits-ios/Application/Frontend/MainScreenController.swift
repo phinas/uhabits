@@ -23,19 +23,19 @@ class MainScreenCell : UITableViewCell {
     var ring = ComponentView(frame: CGRect(), component: nil)
     var label = UILabel()
     var buttons: [ComponentView] = []
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .default, reuseIdentifier: reuseIdentifier)
     }
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
-    
+
     func update(habit: Habit, checkmarks: [Checkmark], score: Score, theme: Theme, nButtons: Int) {
         if buttons.count != nButtons {
             buttons.removeAll()
             for v in contentView.subviews { v.removeFromSuperview() }
-            
+
             let size = CGFloat(theme.checkmarkButtonSize)
             let stack = UIStackView(frame: contentView.frame)
             stack.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -43,16 +43,16 @@ class MainScreenCell : UITableViewCell {
             stack.distribution = .fill
             stack.alignment = .center
             contentView.addSubview(stack)
-            
+
             ring.backgroundColor = .white
             ring.widthAnchor.constraint(equalToConstant: size * 0.75).isActive = true
             ring.heightAnchor.constraint(equalToConstant: size).isActive = true
             stack.addArrangedSubview(ring)
-            
+
             label.backgroundColor = .white
             label.heightAnchor.constraint(equalToConstant: size).isActive = true
             stack.addArrangedSubview(label)
-            
+
             for _ in 1...nButtons {
                 let btn = ComponentView(frame: frame, component: nil)
                 btn.backgroundColor = .white
@@ -62,7 +62,7 @@ class MainScreenCell : UITableViewCell {
                 stack.addArrangedSubview(btn)
             }
         }
-        
+
         var color = theme.color(paletteIndex: habit.color.index)
         if habit.isArchived { color = theme.mediumContrastTextColor }
         label.text = habit.name
@@ -74,7 +74,7 @@ class MainScreenCell : UITableViewCell {
                               theme: theme,
                               label: false)
         ring.setNeedsDisplay()
-        
+
         for i in 0..<buttons.count {
             if habit.type == HabitType.numericalHabit {
                 buttons[i].component = NumberButton(color: color,
@@ -93,7 +93,7 @@ class MainScreenCell : UITableViewCell {
 }
 
 class MainScreenController: UITableViewController, MainScreenDataSourceListener {
-    
+
     var backend: Backend
     var dataSource: MainScreenDataSource
     var data: MainScreenDataSource.Data?
@@ -101,11 +101,11 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
     var theme: Theme
     var nButtons = 3
     var strings = Strings()
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError()
     }
-    
+
     init(withBackend backend:Backend) {
         self.backend = backend
         self.strings = backend.strings
@@ -119,7 +119,7 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
 
     override func viewDidLoad() {
         self.title = strings.main_activity_title
-        
+
         self.navigationItem.rightBarButtonItems = [
             UIBarButtonItem(image: UIImage(named: "ic_more"),
                             style: .plain,
@@ -133,18 +133,18 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
         tableView.backgroundColor = theme.headerBackgroundColor.uicolor
         computeNumberOfButtons(Double(view.frame.width))
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         self.navigationController?.navigationBar.barStyle = .default
         self.navigationController?.navigationBar.tintColor = theme.highContrastTextColor.uicolor
         self.navigationController?.navigationBar.barTintColor = .white
         self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.black]
     }
-    
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return data?.habits.count ?? 0
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MainScreenCell
         let habit = data!.habits[indexPath.row]
@@ -155,7 +155,7 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
                     nButtons: nButtons)
         return cell
     }
-    
+
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let component = HabitListHeader(today: LocalDate(year: 2019, month: 3, day: 24),
                                         nButtons: Int32(nButtons),
@@ -164,29 +164,29 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
         return ComponentView(frame: CGRect(x: 0, y: 0, width: 100, height: CGFloat(theme.checkmarkButtonSize)),
                              component: component)
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return CGFloat(theme.checkmarkButtonSize)
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return CGFloat(theme.checkmarkButtonSize) + 3
     }
-    
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let habit = data!.habits[indexPath.row]
         self.navigationController?.pushViewController(DetailScreenController(habit: habit, backend: backend), animated: true)
     }
-    
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         computeNumberOfButtons(Double(size.width))
         reload()
     }
-    
+
     @objc func onCreateHabitClicked() {
         self.navigationController?.pushViewController(EditHabitController(), animated: true)
     }
-    
+
     @objc func onMoreActionsClicked() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
 
@@ -248,23 +248,23 @@ class MainScreenController: UITableViewController, MainScreenDataSourceListener 
         })
         present(alert, animated: true, completion: nil)
     }
-    
+
     func onDataChanged(newData: MainScreenDataSource.Data) {
         data = newData
         reload()
     }
-    
+
     func computeNumberOfButtons(_ width: Double) {
         nButtons = Int((width - 220) / theme.checkmarkButtonSize)
         nButtons = max(nButtons, 3)
         nButtons = min(nButtons, Int(dataSource.maxNumberOfButtons))
     }
-    
+
     func reload() {
         let sections = NSIndexSet(indexesIn: NSMakeRange(0, self.tableView.numberOfSections))
         tableView.reloadSections(sections as IndexSet, with: .automatic)
     }
-    
+
     func isThereAnyArchivedHabit() -> Bool {
         return data!.habits.filter({ $0.isArchived }).count > 0
     }
